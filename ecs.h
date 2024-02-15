@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 
+
 enum entity_type {
     PLAYER, ENEMY, COLLECTABLE, ENTITY_TYPE_MAX
 };
@@ -11,31 +12,42 @@ enum system_type {
     MOVEMENT, RENDER, SYSTEM_TYPE_MAX 
 };
 
-struct Entity{
-    Vector2 position; 
-    float speed;
-    Vector2 direction;
-    entity_type type;
+enum component_type {
+    POSITION, SPEED, COMPONENT_TYPE_MAX
 };
 
+class Entity_Manager;
 struct System {
+    System(system_type type, void(*update)(Entity_Manager*, int, void*, float)):
+    type(type), update(update) {};
     system_type type;
-    void (*update)(void*, size_t, float);
+    void (*update)(Entity_Manager*, int, void*, float); 
+    void* data;
 };
+
 
 class Entity_Manager {
 public:
-    int add_entity(entity_type type, Vector2 position);
-    entity_type get_type(int id);
+    Entity_Manager() {
+	for (int i = 0; i < COMPONENT_TYPE_MAX; ++i) {
+	    maps.push_back(std::unordered_map<int, int>());
+	}
+    }
+    int add_entity(entity_type type);
+    void add_component(int entity_id, component_type component, void* data);
+    int get_type(int id);
     Vector2 get_position(int id);
-    void add_system(system_type type, void (*update(void*, size_t, float)));
+    float get_speed(int id);
+    void add_system(System system);
     void update(float dt);
 private:
-    std::vector<int> entities;
-    std::vector<entity_type> types;
-    std::vector<Vector2> positions;
+    std::vector<int> entity_ids;
+    std::vector<int> entity_types;
     std::vector<System> systems;
-    std::unordered_map<int, int> entity_pos_map;
-    std::unordered_map<int, int> entity_type_map;
+
+    std::vector<std::unordered_map<int, int>> maps;
+
+    std::vector<std::pair<Vector2, int>> position_data;
+    std::vector<std::pair<float, int>> speed_data;
     int id_counter = 0;
 };

@@ -5,7 +5,7 @@ project(game_experiment)
 add_subdirectory(raylib)
 include_directories(raylib/src)
 
-add_executable(game main.cpp)
+add_executable(game main.cpp ecs.cpp)
 
 set_property(TARGET game PROPERTY CXX_STANDARD 20)
 
