@@ -36,31 +36,38 @@
 //    }
 //};
 //
-void render_update(Entity_Manager* self, int entity_id, void* data, float dt) {
-    std::pair<Vector2, int>* position_type_data = (std::pair<Vector2, int>*)data;
-    Vector2 position = position_type_data->first;
+void render_update(Entity_Manager* self, int entity_id, float dt) {
+    Vector2 position;
+    if (!self->get_position(entity_id, &position)) return;
     Vector2 size = {10, 10};
-    DrawRectangleV(position, size, WHITE);	
+    int type = self->get_type(entity_id);
+    Color col = type == PLAYER ? WHITE : BLACK;
+    DrawRectangleV(position, size, col);	
 }
-void movement_update(Entity_Manager* self, int entity_id, void* data, float dt) {
-    std::pair<Vector2, int>* position_type_data = (std::pair<Vector2, int>*)data;
-    Vector2* position = &position_type_data->first;
-    int type = position_type_data->second;
-    float speed = self->get_speed(entity_id);
-    if (type == PLAYER) {
+void movement_update(Entity_Manager* self, int entity_id, float dt) {
+    std::cout << "movement update \n";
+    int entity_type = self->get_type(entity_id);
+    Vector2 position;
+    if (!self->get_position(entity_id, &position)) return;
+    std::cout << "has position\n";
+    float speed;
+    if (!self->get_speed(entity_id, &speed)) return;
+    std::cout << "movement update: entity_id = " << entity_id << ", dt = " << dt << ", speed = " << speed << "\n";
+    std::cout << "x = " << position.x << ", y = " << position.y << "\n";
+    if (entity_type == PLAYER) {
 	if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
-	    position->x -= speed * dt; 
+	    position.x -= speed * dt; 
 	}
 	if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
-	    position->x += speed * dt; 
+	    position.x += speed * dt; 
 	}
 	if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {
-	    position->y -= speed * dt; 
+	    position.y -= speed * dt; 
 	}
 	if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S)) {
-	    position->y += speed * dt; 
+	    position.y += speed * dt; 
 	}
-	std::cout << "x = " << position->x << ", y = " << position->y << "\n";
+	std::cout << "after the check " << "x = " << position.x << ", y = " << position.y << "\n";
     }
 }
 
@@ -70,14 +77,18 @@ int main() {
     InitWindow(800, 600, "Game");
     Entity_Manager ecs;
     int player_id = ecs.add_entity(PLAYER);
-    std::cout << "after add entity\n";
+    int enemy_id = ecs.add_entity(ENEMY);
     Vector2 player_pos = {100, 100};
+    Vector2 enemy_pos = {200, 200};
+    float speed = 100;
     ecs.add_component(player_id, POSITION, &player_pos);
-    std::cout << "after add component\n";
-    ecs.add_system(System(RENDER, render_update));
-    ecs.add_system(System(MOVEMENT, movement_update));
+    ecs.add_component(player_id, SPEED, &speed);
+    ecs.add_component(enemy_id, POSITION, &enemy_pos);
+    ecs.add_component(enemy_id, SPEED, &speed);
+    ecs.add_system(render_update);
+    ecs.add_system(movement_update);
+    ecs.print();
 
-    std::cout << "before loop\n";
     while (!WindowShouldClose()) {
 	float dt = GetFrameTime();
 	BeginDrawing();
