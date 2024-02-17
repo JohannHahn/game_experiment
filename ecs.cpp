@@ -14,6 +14,25 @@ int Entity_Manager::get_type(int id) {
     return entity_types[id];
 }
 
+void Entity_Manager::set_component_data(component_type type, int entity_id, void* data) {
+    int local_id = maps[type][entity_id];
+    switch (type) {
+	case POSITION: {
+	    Vector2 position = *(Vector2*)data;
+	    position_data[local_id] = position;
+	}
+	break;
+	case SPEED: {
+	    float speed = *(float*)data;
+	    speed_data[local_id] = speed;
+	}
+	break;
+	case COMPONENT_TYPE_MAX:
+	default:
+	assert(0 && "unreachable");
+    }
+}
+
 bool Entity_Manager::get_speed(int id, float* out) {
     if (contains(maps[SPEED], id)) {
 	int speed_id = maps[SPEED][id];
@@ -57,7 +76,6 @@ void Entity_Manager::add_system(update_function update_func) {
 }
 
 void Entity_Manager::add_component(int entity_id, component_type component, void* component_data) {
-    int type = entity_types[entity_id];
     switch (component) {
 	case POSITION: {
 	    Vector2 pos = *(Vector2*)component_data;

@@ -5,7 +5,7 @@
 
 
 enum entity_type {
-    PLAYER, ENEMY, COLLECTABLE, ENTITY_TYPE_MAX
+    PLAYER = 0, ENEMY, COLLECTABLE, ENTITY_TYPE_MAX
 };
 
 enum system_type {
@@ -29,6 +29,7 @@ public:
     }
     int add_entity(entity_type type);
     void add_component(int entity_id, component_type component, void* data);
+    void set_component_data(component_type component, int entity_id, void* data);
     bool get_component(int entity_id, component_type component);
     int get_type(int id);
     bool get_position(int id, Vector2* out);
@@ -41,9 +42,8 @@ public:
     std::vector<int> entity_ids;
     std::vector<int> entity_types;
     std::vector<update_function> systems;
-    // maps from entity_id to any da
+    // maps from entity_id to an index into a specific data array like position, speed etc
     std::vector<std::unordered_map<int, int>> maps;
-    std::unordered_map<system_type, void*> system_data_map;
 
     std::vector<Vector2> position_data;
     std::vector<float> speed_data;
