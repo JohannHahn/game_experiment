@@ -57,42 +57,44 @@ bool Entity_Manager::get_position(int id, Vector2* out) {
 }
 
 void Entity_Manager::update(float dt) {
-    for (update_function update_func: systems) {
-	for (int id : entity_ids) {
-	    update_func(this, id, dt);
+    for (System* system: systems) {
+	for (int id : system->entities) {
+	    system->update(this, id, dt);
 	}
     }
 }
 
-int Entity_Manager::add_entity(entity_type type) {
+int Entity_Manager::add_entity(int type) {
     int id = id_counter++;
     entity_ids.push_back(id);
     entity_types.push_back(type);
     return id;
 }
 
-void Entity_Manager::add_system(update_function update_func) {
-    systems.push_back(update_func);
+void Entity_Manager::add_system(System* system) {
+    systems.push_back(system);
 }
 
-void Entity_Manager::add_component(int entity_id, component_type component, void* component_data) {
-    switch (component) {
-	case POSITION: {
-	    Vector2 pos = *(Vector2*)component_data;
-	    maps[component][entity_id] = position_data.size();
-	    position_data.push_back(pos);
-	}
-	break;
-	case SPEED: {
-	    maps[component][entity_id] = speed_data.size();
-	    float speed = *(float*)component_data;
-	    speed_data.push_back(speed);
-	}
-	break;
-	case COMPONENT_TYPE_MAX:
-	default:
-	assert(0 && "unreachable");
-    }
+void Entity_Manager::add_component(int entity_id, int component) {
+    maps.push_back(std::unordered_map<int, int>());
+    maps[component][entity_id] = data[component].size();
+    //switch (component) {
+    //    case POSITION: {
+    //        Vector2 pos = *(Vector2*)component_data;
+    //        maps[component][entity_id] = position_data.size();
+    //        position_data.push_back(pos);
+    //    }
+    //    break;
+    //    case SPEED: {
+    //        maps[component][entity_id] = speed_data.size();
+    //        float speed = *(float*)component_data;
+    //        speed_data.push_back(speed);
+    //    }
+    //    break;
+    //    case COMPONENT_TYPE_MAX:
+    //    default:
+    //    assert(0 && "unreachable");
+    //}
 }
 
 void Entity_Manager::print() {
@@ -126,8 +128,8 @@ void Entity_Manager::print() {
     }
     std::cout << "----------------";
     std::cout << "\nsystems:\n";
-    for (update_function update_func: systems) {
-	std::cout << "update function pointer = " << (size_t)update_func << "\n"; 
+    for (System* system: systems) {
+	std::cout << "update function pointer = " << (size_t)system->update<< "\n"; 
     }
 }
 

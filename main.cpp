@@ -5,6 +5,15 @@
 #include <vector>
 #include "ecs.h"
 
+
+enum entity_type {
+    PLAYER, ENEMY, COLLECTABLE, ENTITY_TYPE_MAX
+};
+
+enum data_type {
+    POSITION, SPEED, DATA_TYPE_MAX
+};
+
 void render_update(Entity_Manager* self, int entity_id, float dt) {
     Vector2 position;
     if (!self->get_position(entity_id, &position)) return;
@@ -36,11 +45,9 @@ void movement_update(Entity_Manager* self, int entity_id, float dt) {
 	}
     }
     else if (entity_type == ENEMY) {
-	std::cout << "enemy_speed = " << speed << "\n";
 	Vector2 player_pos;
 	self->get_position(0, &player_pos);
 	position = Vector2Add(position, Vector2Scale(Vector2Normalize(Vector2Subtract(player_pos, position)), speed * dt));
-	std::cout << "enemy_speed = " << speed << "\n";
     }
     self->set_component_data(POSITION, entity_id, &position);
 }
@@ -54,12 +61,16 @@ int main() {
     Vector2 enemy_pos = {200, 200};
     float speed = 100;
     float enemy_speed = 90;
+    ecs.add_data
     ecs.add_component(player_id, POSITION, &player_pos);
     ecs.add_component(player_id, SPEED, &speed);
     ecs.add_component(enemy_id, POSITION, &enemy_pos);
     ecs.add_component(enemy_id, SPEED, &enemy_speed);
-    ecs.add_system(render_update);
-    ecs.add_system(movement_update);
+    System render_system = {.update = render_update, .entities = {player_id, enemy_id}};
+    System movement_system = {.update = movement_update, .entities = {}};
+    ecs.add_system(&render_system);
+    ecs.add_system(&movement_system);
+    movement_system.entities.push_back(player_id);
     ecs.print();
 
     while (!WindowShouldClose()) {
