@@ -2,58 +2,29 @@
 #include <cassert>
 #include <iostream>
 
-bool contains(const std::unordered_map<int, int>& map, int key) {
-    return map.find(key) != map.end();
+bool contains(const std::vector<int>& map, int key) {
+    for (int i: map) {
+	if (i == key) return true;
+    }
+    return false;
 }
 
-bool Entity_Manager::has_component(component_type type, int entity_id) {
-    return contains(maps[type], entity_id); 
+bool Entity_Manager::has_component(int component, int entity_id) {
+    return contains(entity_components[entity_id], component); 
 }
 
 int Entity_Manager::get_type(int id) {
     return entity_types[id];
 }
 
-void Entity_Manager::set_component_data(component_type type, int entity_id, void* data) {
-    int local_id = maps[type][entity_id];
-    switch (type) {
-	case POSITION: {
-	    Vector2 position = *(Vector2*)data;
-	    position_data[local_id] = position;
-	}
-	break;
-	case SPEED: {
-	    float speed = *(float*)data;
-	    speed_data[local_id] = speed;
-	}
-	break;
-	case COMPONENT_TYPE_MAX:
-	default:
-	assert(0 && "unreachable");
-    }
+void* Entity_Manager::get_data(int entity_id, int data_id) {
+    assert(contains(index_map[data_id], entity_id));
+    return 
 }
 
-bool Entity_Manager::get_speed(int id, float* out) {
-    if (contains(maps[SPEED], id)) {
-	int speed_id = maps[SPEED][id];
-	*out = speed_data[speed_id];
-	return true;
-    }
-    else {
-	return false;
-    }
-}
-
-bool Entity_Manager::get_position(int id, Vector2* out) {
-    if (contains(maps[POSITION], id)) {
-	int position_id = maps[POSITION][id];
-	*out = position_data[position_id];
-	return true;
-    }
-    else {
-	out = NULL;
-	return false;
-    }
+void Entity_Manager::add_data_array(size_t size, char size_elem_byte) {
+    index_map.push_back(std::vector<int>());
+    data.push_back(Array(size, size*2, size_elem_byte));
 }
 
 void Entity_Manager::update(float dt) {
@@ -76,8 +47,10 @@ void Entity_Manager::add_system(System* system) {
 }
 
 void Entity_Manager::add_component(int entity_id, int component) {
-    maps.push_back(std::unordered_map<int, int>());
-    maps[component][entity_id] = data[component].size();
+    assert(entity_components.size() > entity_id);
+    entity_components[entity_id].push_back(component);
+    //maps.push_back(std::unordered_map<int, int>());
+    //maps[component][entity_id] = data[component].size();
     //switch (component) {
     //    case POSITION: {
     //        Vector2 pos = *(Vector2*)component_data;

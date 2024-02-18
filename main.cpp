@@ -25,6 +25,7 @@ void render_update(Entity_Manager* self, int entity_id, float dt) {
 void movement_update(Entity_Manager* self, int entity_id, float dt) {
     Vector2 position;
     float speed;
+    self->get_data(entity_id, POSITION);
     if (!self->get_position(entity_id, &position) || !self->get_speed(entity_id, &speed)) {
 	assert(0 && "not all components");
 	return;
@@ -61,16 +62,14 @@ int main() {
     Vector2 enemy_pos = {200, 200};
     float speed = 100;
     float enemy_speed = 90;
-    ecs.add_data
-    ecs.add_component(player_id, POSITION, &player_pos);
-    ecs.add_component(player_id, SPEED, &speed);
-    ecs.add_component(enemy_id, POSITION, &enemy_pos);
-    ecs.add_component(enemy_id, SPEED, &enemy_speed);
+    // Position
+    ecs.add_data_array(2, sizeof(Vector2));
+    // Speed
+    ecs.add_data_array(2, sizeof(float));
+    ecs.set_data(POSITION, player_id, &player_pos);
+    ecs.set_data(POSITION, enemy_id, &enemy_pos);
     System render_system = {.update = render_update, .entities = {player_id, enemy_id}};
-    System movement_system = {.update = movement_update, .entities = {}};
     ecs.add_system(&render_system);
-    ecs.add_system(&movement_system);
-    movement_system.entities.push_back(player_id);
     ecs.print();
 
     while (!WindowShouldClose()) {
